@@ -20,11 +20,11 @@ class Plugin1 : public VisPlugin
 
 extern "C"
 {
-  __attribute__ ((visibility ("default"))) VisPlugin* createPlugin()
+  __attribute__ ((visibility ("default"))) VisPlugin* create_object()
   {
     return new Plugin1();
   }
-  __attribute__ ((visibility ("default"))) void releasePlugin(VisPlugin* p_plugin)
+  __attribute__ ((visibility ("default"))) void destroy_object(VisPlugin* p_plugin)
   {
     delete p_plugin;
   }
