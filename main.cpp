@@ -1,23 +1,45 @@
-#include <dlfcn.h>
-#include <iostream>
 #include "VisPlugin.h"
+#include <iostream>
+#include <dlfcn.h>
 
-//typedef VisPlugin* (*PLUGIN_FACTORY)();
-//typedef void (*PLUGIN_CLEANUP)(VisPlugin*);
+int main() {
+    using std::cout;
+    using std::cerr;
 
-int main (int argc, char* argv[])
-{
-  void* handle = dlopen("plugin1.so", RTLD_LAZY);
+    // load the test library
+    void* handle = dlopen("./TestPlugin.so", RTLD_LAZY);
+    if (!handle) {
+        cerr << "Cannot load library: " << dlerror() << '\n';
+        return 1;
+    }
 
-  VisPlugin* (*create)();
-  void (*destroy)(VisPlugin*);
+    // reset errors
+    dlerror();
+    
+    // load the symbols
+    create_t* create_plugin = (create_t*) dlsym(handle, "create");
+    const char* dlsym_error = dlerror();
+    if (dlsym_error) {
+        cerr << "Cannot load symbol create: " << dlsym_error << '\n';
+        return 1;
+    }
+    
+    destroy_t* destroy_plugin = (destroy_t*) dlsym(handle, "destroy");
+    dlsym_error = dlerror();
+    if (dlsym_error) {
+        cerr << "Cannot load symbol destroy: " << dlsym_error << '\n';
+        return 1;
+    }
 
-  create = (VisPlugin* (*)())dlsym(handle, "create_object");
-  destroy = (void (*)(VisPlugin*))dlsym(handle, "destroy_object");
+    // create an instance of the class
+    VisPlugin* test = create_plugin();
 
-  VisPlugin* myPlugin = (VisPlugin*)create();
-  myPlugin->process();
-  destroy(myPlugin);
+    // use the class
+    cout << "Version number: " << test->getVersion() << '\n';
 
-  return 0;
+    // destroy the class
+    destroy_plugin(test);
+
+    // unload the test library
+    dlclose(handle);
 }

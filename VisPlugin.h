@@ -1,6 +1,18 @@
+#ifndef VISPLUGIN_HPP
+#define VISPLUGIN_HPP
+
 class VisPlugin
 {
   public:
-    virtual const char* getName() const = 0;
-    virtual void process() = 0;
+    VisPlugin() {}
+
+    virtual ~VisPlugin() {}
+
+    virtual double getVersion() const = 0;
 };
+
+// the types of the class factories
+typedef VisPlugin* create_t();
+typedef void destroy_t(VisPlugin*);
+
+#endif
