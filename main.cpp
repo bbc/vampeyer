@@ -1,4 +1,4 @@
-#include "VisPlugin.h"
+#include "plugins/VisPlugin.h"
 #include <iostream>
 #include <dlfcn.h>
 
@@ -7,7 +7,7 @@ int main() {
     using std::cerr;
 
     // load the test library
-    void* handle = dlopen("./TestPlugin.so", RTLD_LAZY);
+    void* handle = dlopen("./plugins/TestPlugin.so", RTLD_LAZY);
     if (!handle) {
         cerr << "Cannot load library: " << dlerror() << '\n';
         return 1;

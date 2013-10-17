@@ -8,9 +8,6 @@ public:
     }
 };
 
-
-// the class factories
-
 extern "C" VisPlugin* create() {
     return new TestPlugin;
 }
