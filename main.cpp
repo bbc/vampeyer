@@ -37,6 +37,13 @@ int main() {
     // use the class
     cout << "Version number: " << test->getVersion() << '\n';
 
+/*
+    int pixels = 100*100;
+    char* image = new char[pixels];
+    int result = test->getBitmap(100,100,image);
+    delete[] image;
+*/
+
     // destroy the class
     destroy_plugin(test);
 
