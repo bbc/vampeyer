@@ -5,6 +5,7 @@
 int main() {
     using std::cout;
     using std::cerr;
+    using std::endl;
 
     // load the test library
     void* handle = dlopen("./plugins/TestPlugin.so", RTLD_LAZY);
@@ -35,14 +36,17 @@ int main() {
     VisPlugin* test = create_plugin();
 
     // use the class
-    cout << "Version number: " << test->getVersion() << '\n';
+    cout << "Version number: " << test->getVersion() << '\n';	
 
-/*
+    // set up memory for bitmap
     int pixels = 100*100;
     char* image = new char[pixels];
+
+    // get bitmap from plugin
     int result = test->getBitmap(100,100,image);
+
+    // free bitmap memory
     delete[] image;
-*/
 
     // destroy the class
     destroy_plugin(test);

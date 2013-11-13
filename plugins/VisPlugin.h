@@ -12,7 +12,10 @@ class VisPlugin
 
     virtual ~VisPlugin() {}
 
-    virtual int getBitmap(int width, int height, char *&bitmap);
+    virtual int getBitmap(int width, int height, char *&bitmap)
+    {
+      return -1;
+    }
 
     virtual double getVersion() const = 0;
 };
