@@ -3,7 +3,7 @@ CC=g++
 PROG=main
 SOURCES=main.cpp
 CFLAGS=-c -Wall
-LDFLAGS=-ldl
+LDFLAGS=-ldl -lcairo -lpng
 OBJECTS=$(SOURCES:.cpp=.o)
 
 PLUGINS_DIR=plugins
