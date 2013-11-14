@@ -1,12 +1,17 @@
 #include "plugins/VisPlugin.h"
+#include "VampHost.h"
 #include <iostream>
 #include <dlfcn.h>
 #include <cairo/cairo.h>
 #include <png.h>
+#include <sstream>
+#include <string>
+#include <sndfile.h>
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
 
 int writePNG(char* filename, int width, int height, int stride, unsigned char *buffer)
 {
@@ -58,6 +63,7 @@ int writePNG(char* filename, int width, int height, int stride, unsigned char *b
 int main()
 {
     char pngfile[] = "test.png";
+    string wavfile = "/data/audio/test/metronome-noise.wav";
 
     // load the test library
     void* handle = dlopen("./plugins/TestPlugin.so", RTLD_LAZY);
@@ -87,16 +93,43 @@ int main()
     VisPlugin* test = create_plugin();
 
     // print version number of library
-    cout << "Version number: " << test->getVersion() << '\n';	
+    cout << "Version number: " << test->getVersion() << endl
+         << "Vamp plugin: " << test->getVampPlugin() << endl;
+
+    // open .wav file
+    SNDFILE *sndfile;
+    SF_INFO sfinfo;
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
+    if (!sndfile) {
+      cerr << ": ERROR: Failed to open input file \""
+           << wavfile << "\": " << sf_strerror(sndfile) << endl;
+      return 1;
+    }
+
+    // find and parse vamp plugin name
+    istringstream ss(test->getVampPlugin());
+    string vampGroup, vampPlugin, vampOutput;
+    getline( ss, vampGroup, ':' );
+    getline( ss, vampPlugin, ':' );
+    getline( ss, vampOutput, ':' );
+
+    // initialise vamp host
+    vector<Plugin::FeatureSet> results;
+    VampHost host(sndfile, sfinfo, vampGroup+":"+vampPlugin);
+    cout << "Coefficients position: " << host.findOutputNumber(vampOutput) << endl;
+
+    // process audio file
+    host.run(results);
 
     // set up memory for bitmap
-    int width=100;
-    int height=100;
+    int width=800;
+    int height=600;
     cairo_format_t format = CAIRO_FORMAT_ARGB32;
     cairo_surface_t *surface = cairo_image_surface_create(format, width, height);
 
     // get bitmap from library and save as PNG
-    test->ARGB(width, height, cairo_image_surface_get_data(surface));
+    test->ARGB(results, width, height, cairo_image_surface_get_data(surface));
     writePNG(pngfile, width, height,
              cairo_format_stride_for_width(format, width),
              cairo_image_surface_get_data(surface));

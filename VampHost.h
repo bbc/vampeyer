@@ -1,3 +1,5 @@
+#ifndef VAMPHOST_HPP
+#define VAMPHOST_HPP
 /* -*- c-basic-offset: 4 indent-tabs-mode: nil -*-  vi:set ts=8 sts=4 sw=4: */
 
 /*
@@ -101,4 +103,4 @@ class VampHost
     int getBlockSize();
     int getStepSize();
 };
-
+#endif

@@ -1,6 +1,10 @@
 #ifndef VISPLUGIN_HPP
 #define VISPLUGIN_HPP
 
+#include "../VampHost.h"
+#include <string>
+#include <vector>
+
 class VisPlugin
 {
   protected:
@@ -12,9 +16,16 @@ class VisPlugin
 
     virtual ~VisPlugin() {}
 
-    virtual int ARGB(int width, int height, unsigned char *bitmap)
+    virtual int ARGB(vector<Plugin::FeatureSet> features,
+                     int width,
+                     int height,
+                     unsigned char *bitmap)
     {
       return -1;
+    }
+
+    virtual std::string getVampPlugin() {
+      return "";
     }
 
     virtual double getVersion() const = 0;
