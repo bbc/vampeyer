@@ -1,5 +1,4 @@
 #include "VisPlugin.h"
-#include <cmath>
 #include <cairo/cairo.h>
 
 class TestPlugin : public VisPlugin {
