@@ -1,9 +1,9 @@
 CC=g++
 
 PROG=main
-SOURCES=main.cpp
-CFLAGS=-c -Wall
-LDFLAGS=-ldl -lcairo -lpng
+SOURCES=VampHost.cpp main.cpp
+CFLAGS=-c -Wall -I/home/chrisbau/builds/vamp-plugin-sdk-2.5
+LDFLAGS=-L/home/chrisbau/builds/vamp-plugin-sdk-2.5 -ldl -lcairo -lpng -lsndfile -lvamp-hostsdk
 OBJECTS=$(SOURCES:.cpp=.o)
 
 PLUGINS_DIR=plugins

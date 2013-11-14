@@ -52,10 +52,13 @@ int writePNG(char* filename, int width, int height, int stride, unsigned char *b
   png_destroy_write_struct(&png_ptr, &info_ptr);
   fclose(fp);
 
+  return 0;
 }
 
 int main()
 {
+    char pngfile[] = "test.png";
+
     // load the test library
     void* handle = dlopen("./plugins/TestPlugin.so", RTLD_LAZY);
     if (!handle) {
@@ -93,10 +96,10 @@ int main()
     cairo_surface_t *surface = cairo_image_surface_create(format, width, height);
 
     // get bitmap from library and save as PNG
-    int result = test->ARGB(width, height, cairo_image_surface_get_data(surface));
-    int pngResult = writePNG("test.png", width, height,
-                             cairo_format_stride_for_width(format, width),
-                             cairo_image_surface_get_data(surface));
+    test->ARGB(width, height, cairo_image_surface_get_data(surface));
+    writePNG(pngfile, width, height,
+             cairo_format_stride_for_width(format, width),
+             cairo_image_surface_get_data(surface));
 
     // clean up
     cairo_surface_destroy(surface);
