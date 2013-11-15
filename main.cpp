@@ -32,6 +32,7 @@ int writePNG(char* filename, int width, int height, unsigned char *buffer)
   png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (!png_ptr) {
     cerr << "Could not allocate PNG write struct." << endl;
+    fclose(fp);
     return 1;
   }
 
@@ -39,6 +40,7 @@ int writePNG(char* filename, int width, int height, unsigned char *buffer)
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
     cerr << "Could not allocate PNG info struct." << endl;
+    fclose(fp);
     return 1;
   }
 
@@ -70,7 +72,7 @@ int main()
     // load the test library
     void* handle = dlopen(visplugin, RTLD_LAZY);
     if (!handle) {
-        cerr << "Cannot load library: " << dlerror() << '\n';
+        cerr << "ERROR: Cannot load library: " << dlerror() << endl;
         return 1;
     }
 
@@ -81,13 +83,15 @@ int main()
     create_t* create_plugin = (create_t*) dlsym(handle, "create");
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
-        cerr << "Cannot load symbol create: " << dlsym_error << '\n';
+        cerr << "ERROR: Cannot load symbol create: " << dlsym_error << endl;
+        dlclose(handle);
         return 1;
     }
     destroy_t* destroy_plugin = (destroy_t*) dlsym(handle, "destroy");
     dlsym_error = dlerror();
     if (dlsym_error) {
-        cerr << "Cannot load symbol destroy: " << dlsym_error << '\n';
+        cerr << "ERROR: Cannot load symbol destroy: " << dlsym_error << endl;
+        dlclose(handle);
         return 1;
     }
 
@@ -106,6 +110,8 @@ int main()
     if (!sndfile) {
       cerr << ": ERROR: Failed to open input file \""
            << wavfile << "\": " << sf_strerror(sndfile) << endl;
+      destroy_plugin(test);
+      dlclose(handle);
       return 1;
     }
 
@@ -118,11 +124,21 @@ int main()
 
     // initialise vamp host
     VampHost host(sndfile, sfinfo, vampGroup+":"+vampPlugin);
-    cout << "Coefficients position: " << host.findOutputNumber(vampOutput) << endl;
+    if (host.findOutputNumber(vampOutput) < 0) {
+      cerr << "ERROR: Requested Vamp output could not be found." << endl;
+      destroy_plugin(test);
+      dlclose(handle);
+      return 1;
+    }
 
     // process audio file
     vector<Plugin::FeatureSet> results;
-    host.run(results);
+    if (host.run(results)) {
+      cerr << "ERROR: Vamp plugin could not process audio." << endl;
+      destroy_plugin(test);
+      dlclose(handle);
+      return 1;
+    }
 
     // set up memory for bitmap
     int width=800;
@@ -130,8 +146,18 @@ int main()
     unsigned char buffer[width*height*BYTES_PER_PIXEL];
 
     // get bitmap from library and save as PNG
-    test->ARGB(results, width, height, buffer);
-    writePNG(pngfile, width, height, buffer);
+    if (test->ARGB(results, width, height, buffer)) {
+      cerr << "ERROR: Plugin failed to produce bitmap." << endl;
+      destroy_plugin(test);
+      dlclose(handle);
+      return 1;
+    }
+    if (writePNG(pngfile, width, height, buffer)) {
+      cerr << "ERROR: Failed to write PNG." << endl;
+      destroy_plugin(test);
+      dlclose(handle);
+      return 1;
+    }
 
     // clean up
     destroy_plugin(test);

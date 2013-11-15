@@ -189,10 +189,10 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
 
     // initialise plugin
     if (!plugin->initialise(channels, stepSize, blockSize)) {
-        cerr << "ERROR: Plugin initialise (channels = " << channels
+        cerr << "Plugin initialise (channels = " << channels
              << ", stepSize = " << stepSize << ", blockSize = "
              << blockSize << ") failed." << endl;
-        return -1;
+        return 1;
     }
 
     // find timestamp adjustment
@@ -213,7 +213,7 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
         // if block size matches step size, just read a full block
         if ((blockSize==stepSize) || (currentStep==0)) {
             if ((count = sf_readf_float(sndfile, filebuf, blockSize)) < 0) {
-                cerr << "ERROR: sf_readf_float failed: " << sf_strerror(sndfile) << endl;
+                cerr << "sf_readf_float failed: " << sf_strerror(sndfile) << endl;
                 break;
             }
             if (count != blockSize) --finalStepsRemaining;
@@ -222,7 +222,7 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
         } else {
             memmove(filebuf, filebuf + (stepSize * channels), overlapSize * channels * sizeof(float));
             if ((count = sf_readf_float(sndfile, filebuf + (overlapSize * channels), stepSize)) < 0) {
-                cerr << "ERROR: sf_readf_float failed: " << sf_strerror(sndfile) << endl;
+                cerr << "sf_readf_float failed: " << sf_strerror(sndfile) << endl;
                 break;
             }
             if (count != stepSize) --finalStepsRemaining;
@@ -255,7 +255,7 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
     rt = RealTime::frame2RealTime(currentStep * stepSize, sampleRate);
     results.push_back(plugin->getRemainingFeatures());
 
-    return 1;
+    return 0;
 }
 
 int VampHost::getBlockSize()
