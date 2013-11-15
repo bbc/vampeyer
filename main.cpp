@@ -72,31 +72,25 @@ int main(int argc, char** argv)
   string pngfile, visplugin, wavfile;
 
   // parse command line arguments
-  try {
+  try
+  {
     TCLAP::CmdLine cmd("Audio visualiser", ' ', "0.1");
     TCLAP::UnlabeledValueArg<string> wavFileArg("wavFile",
-                                                "Path of audio file",
-                                                true,
-                                                "",
-                                                "string");
-    TCLAP::ValueArg<string> visPluginArg("p",
-                                         "visPlugin",
-                                         "Path of visualization plugin",
-                                         true,
-                                         "",
-                                         "string");
-    TCLAP::ValueArg<string> pngFileArg("o",
-                                       "pngFile",
-                                       "File to save output PNG",
-                                       false,
-                                       "",
-                                       "string");
-    TCLAP::SwitchArg verboseArg("V", "verbose", "Enable verbose output", false);
+        "Path of audio file", true, "", "string");
+    TCLAP::ValueArg<string> visPluginArg("p", "visPlugin",
+        "Path of visualization plugin", true, "", "string");
+    TCLAP::ValueArg<string> pngFileArg("o", "pngFile",
+        "File to save output PNG", false, "", "string");
+    TCLAP::SwitchArg verboseArg("V", "verbose", "Enable verbose output",
+        false);
+
     cmd.add(wavFileArg);
     cmd.add(visPluginArg);
     cmd.add(pngFileArg);
     cmd.add(verboseArg);
+
     cmd.parse(argc, argv);
+
     wavfile = wavFileArg.getValue();
     visplugin = visPluginArg.getValue();
     pngfile = pngFileArg.getValue();
@@ -109,6 +103,7 @@ int main(int argc, char** argv)
   }
 
   // load the test library
+  if (verbose) cout << " * Loading visualization plugin...";
   void* handle = dlopen(visplugin.c_str(), RTLD_LAZY);
   if (!handle) {
     cerr << "ERROR: Cannot load library: " << dlerror() << endl;
@@ -136,10 +131,10 @@ int main(int argc, char** argv)
 
   // create an instance of the class
   VisPlugin* test = create_plugin();
-  if (verbose) cout << "Visualisation plugin loaded, version " <<
-    test->getVersion() << endl;
+  if (verbose) cout << " [done]" << endl;
 
   // open .wav file
+  if (verbose) cout << " * Loading audio file...";
   SNDFILE *sndfile;
   SF_INFO sfinfo;
   memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -151,8 +146,10 @@ int main(int argc, char** argv)
     dlclose(handle);
     return 1;
   }
+  if (verbose) cout << " [done]" << endl;
 
   // find and parse vamp plugin name
+  if (verbose) cout << " * Loading Vamp plugins...";
   istringstream ss(test->getVampPlugin());
   string vampGroup, vampPlugin, vampOutput;
   getline( ss, vampGroup, ':' );
@@ -161,16 +158,16 @@ int main(int argc, char** argv)
 
   // initialise vamp host
   VampHost host(sndfile, sfinfo, vampGroup+":"+vampPlugin);
-  if (verbose) cout << "Vamp plugin " << test->getVampPlugin()
-    << " loaded." << endl;
   if (host.findOutputNumber(vampOutput) < 0) {
     cerr << "ERROR: Requested Vamp output could not be found." << endl;
     destroy_plugin(test);
     dlclose(handle);
     return 1;
   }
+  if (verbose) cout << " [done]" << endl;
 
   // process audio file
+  if (verbose) cout << " * Processing audio...";
   vector<Plugin::FeatureSet> results;
   if (host.run(results)) {
     cerr << "ERROR: Vamp plugin could not process audio." << endl;
@@ -178,8 +175,10 @@ int main(int argc, char** argv)
     dlclose(handle);
     return 1;
   }
+  if (verbose) cout << " [done]" << endl;
 
   // set up memory for bitmap
+  if (verbose) cout << " * Generating image...";
   int width=800;
   int height=300;
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
@@ -191,19 +190,24 @@ int main(int argc, char** argv)
     dlclose(handle);
     return 1;
   }
+  if (verbose) cout << " [done]" << endl;
 
   if (pngfile != "")
   {
+    if (verbose) cout << " * Writing PNG...";
     if (writePNG(pngfile.c_str(), width, height, buffer)) {
       cerr << "ERROR: Failed to write PNG." << endl;
       destroy_plugin(test);
       dlclose(handle);
       return 1;
     }
+    if (verbose) cout << " [done]" << endl;
   }
   else
   {
+    if (verbose) cout << " * Displaying image...";
     GUI window(width, height, buffer);
+    if (verbose) cout << " [done]" << endl;
   }
 
   // clean up

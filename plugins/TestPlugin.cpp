@@ -9,13 +9,15 @@ public:
         return 0.1;
     }
 
-    virtual int ARGB(vector<Plugin::FeatureSet> features, int width, int height, unsigned char *bitmap)
+    virtual int ARGB(vector<Plugin::FeatureSet> features, int width,
+        int height, unsigned char *bitmap)
     {
       // set up cairo surface
       cairo_surface_t *surface;
       cairo_format_t format = CAIRO_FORMAT_ARGB32;
       int stride = cairo_format_stride_for_width(format, width);
-      surface = cairo_image_surface_create_for_data (bitmap, format, width, height, stride);
+      surface = cairo_image_surface_create_for_data (bitmap, format, width,
+          height, stride);
 
       // set up cairo context
       cairo_t *cr;
