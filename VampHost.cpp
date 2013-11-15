@@ -137,8 +137,6 @@ VampHost::VampHost(SNDFILE *sndfile_in,
   if (outputs.empty()) {
     cerr << "ERROR: Plugin has no outputs!" << endl;
   }
-
-  cout << "Plugin ready." << endl;
 }
 
 VampHost::~VampHost()
