@@ -8,7 +8,7 @@ LDFLAGS=-L/home/chrisbau/builds/vamp-plugin-sdk-2.5 -ldl -lpng -lsndfile \
 OBJECTS=$(SOURCES:.cpp=.o)
 
 PLUGINS_DIR=plugins
-PLUGINS=$(PLUGINS_DIR)/Amplitude.so
+PLUGINS=$(PLUGINS_DIR)/Amplitude.so $(PLUGINS_DIR)/MFCC.so
 PLUGINS_CFLAGS=-Wall -shared -fPIC
 PLUGINS_LDFLAGS=-lcairo
 
