@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     TCLAP::CmdLine cmd("Audio visualiser", ' ', "0.1");
     TCLAP::UnlabeledValueArg<string> wavFileArg("wavFile",
         "Path of audio file", true, "", "filename.wav");
-    TCLAP::ValueArg<string> visPluginArg("p", "visPlugin",
+    TCLAP::ValueArg<string> visPluginArg("p", "plugin",
         "Path of visualization plugin", true, "", "library.so");
     TCLAP::ValueArg<string> pngFileArg("o", "pngFile",
         "File to save output PNG", false, "", "filename.png");
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
     return 1;
   }
  
-  // load the test library
+  // load the visualization library
   if (verbose) cout << " * Loading visualization plugin...";
   void* handle = dlopen(visplugin.c_str(), RTLD_LAZY);
   if (!handle) {
@@ -152,7 +152,7 @@ int main(int argc, char** argv)
   }
 
   // create an instance of the class
-  VisPlugin* test = create_plugin();
+  VisPlugin* plugin = create_plugin();
   if (verbose) cout << " [done]" << endl;
 
   // open .wav file
@@ -164,7 +164,7 @@ int main(int argc, char** argv)
   if (!sndfile) {
     cerr << ": ERROR: Failed to open input file \""
       << wavfile << "\": " << sf_strerror(sndfile) << endl;
-    destroy_plugin(test);
+    destroy_plugin(plugin);
     dlclose(handle);
     return 1;
   }
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 
   // find and parse vamp plugin name
   if (verbose) cout << " * Loading Vamp plugins...";
-  istringstream ss(test->getVampPlugin());
+  istringstream ss(plugin->getVampPlugin());
   string vampGroup, vampPlugin, vampOutput;
   getline( ss, vampGroup, ':' );
   getline( ss, vampPlugin, ':' );
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
   VampHost host(sndfile, sfinfo, vampGroup+":"+vampPlugin);
   if (host.findOutputNumber(vampOutput) < 0) {
     cerr << "ERROR: Requested Vamp output could not be found." << endl;
-    destroy_plugin(test);
+    destroy_plugin(plugin);
     dlclose(handle);
     return 1;
   }
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
   vector<Plugin::FeatureSet> results;
   if (host.run(results)) {
     cerr << "ERROR: Vamp plugin could not process audio." << endl;
-    destroy_plugin(test);
+    destroy_plugin(plugin);
     dlclose(handle);
     return 1;
   }
@@ -218,9 +218,9 @@ int main(int argc, char** argv)
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
 
   // get bitmap from library
-  if (test->ARGB(resultsFilt, width, height, buffer)) {
+  if (plugin->ARGB(resultsFilt, width, height, buffer)) {
     cerr << "ERROR: Plugin failed to produce bitmap." << endl;
-    destroy_plugin(test);
+    destroy_plugin(plugin);
     dlclose(handle);
     return 1;
   }
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
     if (verbose) cout << " * Writing PNG...";
     if (writePNG(pngfile.c_str(), width, height, buffer)) {
       cerr << "ERROR: Failed to write PNG." << endl;
-      destroy_plugin(test);
+      destroy_plugin(plugin);
       dlclose(handle);
       return 1;
     }
@@ -245,6 +245,6 @@ int main(int argc, char** argv)
   }
 
   // clean up
-  destroy_plugin(test);
+  destroy_plugin(plugin);
   dlclose(handle);
 }

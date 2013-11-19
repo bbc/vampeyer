@@ -116,7 +116,8 @@ VampHost::VampHost(SNDFILE *sndfile_in,
 
   // check step size is smaller or equal to block size
   if (stepSize > blockSize) {
-    cerr << "WARNING: stepSize " << stepSize << " > blockSize " << blockSize << ", resetting blockSize to ";
+    cerr << "WARNING: stepSize " << stepSize
+         << " > blockSize " << blockSize << ", resetting blockSize to ";
     if (plugin->getInputDomain() == Plugin::FrequencyDomain) {
       blockSize = stepSize * 2;
     } else {
@@ -160,7 +161,8 @@ int VampHost::findOutputNumber(string outputName)
   }
 
   // if not found, return -1
-  cerr << "ERROR: Non-existent output \"" << outputName << "\" requested" << endl;
+  cerr << "ERROR: Non-existent output \"" << outputName
+    << "\" requested" << endl;
   return -1;
 }
 
@@ -168,7 +170,8 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
 {
     int overlapSize = blockSize - stepSize;
     sf_count_t currentStep = 0;
-    int finalStepsRemaining = max(1, (blockSize / stepSize) - 1); // at end of file, this many part-silent frames needed after we hit EOF
+    // at end of file, this many part-silent frames needed after we hit EOF
+    int finalStepsRemaining = max(1, (blockSize / stepSize) - 1);
 
     RealTime rt;
     PluginWrapper *wrapper = 0;
@@ -203,7 +206,8 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
         if (ida) adjustment = ida->getTimestampAdjustment();
     }
     
-    // Here we iterate over the frames, avoiding asking the numframes in case it's streaming input.
+    // Here we iterate over the frames, avoiding asking the numframes
+    // in case it's streaming input.
     do {
 
         int count;
@@ -211,16 +215,20 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
         // if block size matches step size, just read a full block
         if ((blockSize==stepSize) || (currentStep==0)) {
             if ((count = sf_readf_float(sndfile, filebuf, blockSize)) < 0) {
-                cerr << "sf_readf_float failed: " << sf_strerror(sndfile) << endl;
+                cerr << "sf_readf_float failed: " << sf_strerror(sndfile)
+                  << endl;
                 break;
             }
             if (count != blockSize) --finalStepsRemaining;
 
         // if different, shunt exiting data and read the remainder
         } else {
-            memmove(filebuf, filebuf + (stepSize * channels), overlapSize * channels * sizeof(float));
-            if ((count = sf_readf_float(sndfile, filebuf + (overlapSize * channels), stepSize)) < 0) {
-                cerr << "sf_readf_float failed: " << sf_strerror(sndfile) << endl;
+            memmove(filebuf, filebuf + (stepSize * channels),
+                    overlapSize * channels * sizeof(float));
+            if ((count = sf_readf_float(sndfile, filebuf + (overlapSize *
+                      channels), stepSize)) < 0) {
+                cerr << "sf_readf_float failed: " << sf_strerror(sndfile)
+                  << endl;
                 break;
             }
             if (count != stepSize) --finalStepsRemaining;
