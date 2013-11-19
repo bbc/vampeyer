@@ -8,6 +8,7 @@
 #include <string>
 #include <sndfile.h>
 #include <tclap/CmdLine.h>
+#include <stdexcept>
 
 #define BYTES_PER_PIXEL 4
 
@@ -69,39 +70,60 @@ int writePNG(const char* filename, int width, int height, unsigned char *buffer)
 int main(int argc, char** argv)
 {
   bool verbose;
-  string pngfile, visplugin, wavfile;
+  string pngfile, visplugin, wavfile, size;
+  int width=0, height=0;
 
   // parse command line arguments
   try
   {
     TCLAP::CmdLine cmd("Audio visualiser", ' ', "0.1");
     TCLAP::UnlabeledValueArg<string> wavFileArg("wavFile",
-        "Path of audio file", true, "", "string");
+        "Path of audio file", true, "", "filename.wav");
     TCLAP::ValueArg<string> visPluginArg("p", "visPlugin",
-        "Path of visualization plugin", true, "", "string");
+        "Path of visualization plugin", true, "", "library.so");
     TCLAP::ValueArg<string> pngFileArg("o", "pngFile",
-        "File to save output PNG", false, "", "string");
+        "File to save output PNG", false, "", "filename.png");
+    TCLAP::ValueArg<string> sizeArg("s", "size",
+        "Size of output image in pixels", false, "600x200",
+        "width>x<height");
     TCLAP::SwitchArg verboseArg("V", "verbose", "Enable verbose output",
         false);
 
     cmd.add(wavFileArg);
     cmd.add(visPluginArg);
     cmd.add(pngFileArg);
+    cmd.add(sizeArg);
     cmd.add(verboseArg);
 
+    // parse arguments
     cmd.parse(argc, argv);
-
     wavfile = wavFileArg.getValue();
     visplugin = visPluginArg.getValue();
     pngfile = pngFileArg.getValue();
+    size = sizeArg.getValue();
     verbose = verboseArg.getValue();
+
+    // parse size
+    istringstream ss(size);
+    string widthStr, heightStr;
+    getline( ss, widthStr, 'x' );
+    getline( ss, heightStr );
+    istringstream(widthStr) >> width;
+    istringstream(heightStr) >> height;
+
+    // check size is valid 
+    if (width <= 0 || height <= 0)
+    {
+      cerr << "ERROR: Could not parse size argument." << endl;
+      return 1;
+    }
 
   } catch (TCLAP::ArgException &e)
   {
     cerr << "ERROR: " << e.error() << " for arg " << e.argId() << endl;
     return 1;
   }
-
+ 
   // load the test library
   if (verbose) cout << " * Loading visualization plugin...";
   void* handle = dlopen(visplugin.c_str(), RTLD_LAZY);
@@ -193,8 +215,6 @@ int main(int argc, char** argv)
 
   // set up memory for bitmap
   if (verbose) cout << " * Generating image...";
-  int width=800;
-  int height=300;
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
 
   // get bitmap from library
