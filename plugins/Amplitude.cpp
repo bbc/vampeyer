@@ -9,7 +9,7 @@ public:
         return 0.1;
     }
 
-    virtual int ARGB(vector<Plugin::FeatureSet> features, int width,
+    virtual int ARGB(Plugin::FeatureSet features, int width,
         int height, unsigned char *bitmap)
     {
       // set up cairo surface
@@ -32,14 +32,12 @@ public:
       cairo_move_to(cr, 0, 1);
 
       // draw amplitude
-      int frames = features.size();
+      int frames = features[0].size();
       for (int frame=0; frame<frames; frame++)
       {
-        Plugin::FeatureSet feats = features[frame];
-        if (feats.size() > 0) {
-          double amp = feats[0][0].values[0];
-          cairo_line_to(cr, (double)frame/(double)frames, 1.0-amp);
-        }
+        Plugin::Feature feats = features[0].at(frame);
+        double amp = feats.values[0];
+        cairo_line_to(cr, (double)frame/(double)frames, 1.0-amp);
       }
 
       // finish line

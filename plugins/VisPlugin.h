@@ -16,7 +16,7 @@ class VisPlugin
 
     virtual ~VisPlugin() {}
 
-    virtual int ARGB(vector<Plugin::FeatureSet> features,
+    virtual int ARGB(Plugin::FeatureSet features,
                      int width,
                      int height,
                      unsigned char *bitmap)

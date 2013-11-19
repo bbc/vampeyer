@@ -177,6 +177,20 @@ int main(int argc, char** argv)
   }
   if (verbose) cout << " [done]" << endl;
 
+  if (verbose) cout << " * Refactoring data...";
+  Plugin::FeatureSet resultsFilt;
+  //TODO for each output
+  Plugin::FeatureList featList;
+  int outNum = host.findOutputNumber(vampOutput);
+  for (unsigned int i=0; i<results.size(); i++)
+  {
+    Plugin::FeatureList feats = results.at(i)[0];
+    if (feats.size() >= (unsigned int)outNum+1)
+      featList.push_back(feats.at(outNum));
+  }
+  resultsFilt[0] = featList;
+  if (verbose) cout << " [done]" << endl;
+
   // set up memory for bitmap
   if (verbose) cout << " * Generating image...";
   int width=800;
@@ -184,7 +198,7 @@ int main(int argc, char** argv)
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
 
   // get bitmap from library
-  if (test->ARGB(results, width, height, buffer)) {
+  if (test->ARGB(resultsFilt, width, height, buffer)) {
     cerr << "ERROR: Plugin failed to produce bitmap." << endl;
     destroy_plugin(test);
     dlclose(handle);
