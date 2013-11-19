@@ -1,7 +1,7 @@
 #include "VisPlugin.h"
 #include <cairo/cairo.h>
 
-class TestPlugin : public VisPlugin {
+class Amplitude : public VisPlugin {
 
 public:
 
@@ -27,7 +27,7 @@ public:
       cairo_paint(cr);
 
       // start line in bottom left corner
-      cairo_set_line_width(cr, 0.1);
+      cairo_set_line_width(cr, 0);
       cairo_set_source_rgba(cr, 0, 0, 0, 1);
       cairo_move_to(cr, 0, 1);
 
@@ -61,7 +61,7 @@ public:
 };
 
 extern "C" VisPlugin* create() {
-    return new TestPlugin;
+    return new Amplitude;
 }
 
 extern "C" void destroy(VisPlugin* p) {
