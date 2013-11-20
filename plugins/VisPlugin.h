@@ -1,9 +1,11 @@
 #ifndef VISPLUGIN_HPP
 #define VISPLUGIN_HPP
 
-#include "../VampHost.h"
-#include <string>
+#include "vamp-hostsdk/Plugin.h"
+#include <cstring>
 #include <vector>
+
+using Vamp::Plugin;
 
 class VisPlugin
 {
@@ -12,6 +14,45 @@ class VisPlugin
     int height;
 
   public:
+
+    typedef struct _VampParameter
+    {
+      const char *name;
+      float value;
+
+      bool operator<(const _VampParameter &n) const { 
+        if (this->name < n.name) return true;
+        if (this->name > n.name) return false;
+        return this->value < n.value;
+      }
+    } VampParameter;
+
+    typedef struct _VampPlugin
+    {
+      const char *name;
+      int blockSize;
+      int stepSize;
+      std::vector<VampParameter> parameters;
+
+      bool operator<( const _VampPlugin &n ) const {
+        if (this->name < n.name) return true;
+        if (this->name > n.name) return false;
+        if (this->blockSize < n.blockSize) return true;
+        if (this->blockSize > n.blockSize) return false;
+        if (this->stepSize < n.stepSize) return true;
+        if (this->stepSize > n.stepSize) return false;
+        return this->parameters < n.parameters;
+      }
+    } VampPlugin;
+
+    typedef struct _VampOutput
+    {
+      VampPlugin plugin;
+      const char *name;
+    } VampOutput;
+
+    typedef std::vector<VampOutput> VampOutputList;
+
     VisPlugin() {}
 
     virtual ~VisPlugin() {}
@@ -24,8 +65,9 @@ class VisPlugin
       return -1;
     }
 
-    virtual std::string getVampPlugin() {
-      return "";
+    virtual VampOutputList getVampPlugins() {
+      VampOutputList out;
+      return out;
     }
 
     virtual double getVersion() const = 0;

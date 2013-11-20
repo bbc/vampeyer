@@ -66,9 +66,15 @@ public:
       return 0;
     }
 
-    virtual std::string getVampPlugin()
+    virtual VampOutputList getVampPlugins()
     {
-      return "qm-vamp-plugins:qm-mfcc:coefficients";
+      VampOutputList pluginList;
+
+      VampPlugin qmMFCC = {"qm-vamp-plugins:qm-mfcc", 0, 0};
+      VampOutput mfcc = {qmMFCC, "coefficients"};
+
+      pluginList.push_back(mfcc);
+      return pluginList;
     }
 };
 

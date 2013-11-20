@@ -1,7 +1,7 @@
 #include "VisPlugin.h"
 #include <cairo/cairo.h>
 
-class Amplitude : public VisPlugin {
+class AmpMFCC: public VisPlugin {
 
 public:
 
@@ -12,6 +12,9 @@ public:
     virtual int ARGB(Plugin::FeatureSet features, int width,
         int height, unsigned char *bitmap)
     {
+      int frames;
+      unsigned int coeffs = features[0].at(0).values.size();
+
       // set up cairo surface
       cairo_surface_t *surface;
       cairo_format_t format = CAIRO_FORMAT_ARGB32;
@@ -31,11 +34,36 @@ public:
       cairo_set_source_rgba(cr, 0, 0, 0, 1);
       cairo_move_to(cr, 0, 1);
 
-      // draw amplitude
-      int frames = features[0].size();
+      // draw MFCCs
+      frames = features[0].size();
       for (int frame=0; frame<frames; frame++)
       {
-        Plugin::Feature feats = features[0].at(frame);
+        for (unsigned int coeff=0; coeff<coeffs; coeff++)
+        {
+          float value = features[0].at(frame).values.at(coeff); 
+          if (value < -5.0) value = -5.0;
+          if (value > 1.0) value = 1.0;
+          value = (value + 5.0) / 6.0;
+          cairo_set_source_rgba(cr, value,
+                                    value,
+                                    value, 1);
+          cairo_rectangle(cr, (double)frame/(double)frames,
+                              (double)coeff/(double)coeffs,
+                              1.0/(double)frames,
+                              1.0/(double)coeffs);
+          cairo_fill(cr);
+        }
+      }
+
+      // start line in bottom left corner
+      cairo_set_line_width(cr, 0);
+      cairo_set_source_rgba(cr, 0, 0, 0, 1);
+      cairo_move_to(cr, 0, 1);
+
+      frames = features[1].size();
+      for (int frame=0; frame<frames; frame++)
+      {
+        Plugin::Feature feats = features[1].at(frame);
         double amp = feats.values[0];
         cairo_line_to(cr, (double)frame/(double)frames, 1.0-amp);
       }
@@ -57,18 +85,18 @@ public:
       VampOutputList pluginList;
 
       VampPlugin qmAmp = {"vamp-example-plugins:amplitudefollower", 0, 0};
-      VampPlugin qmMFCC = {"qm-vamp-plugins:qm-mfcc", 0, 0};
       VampOutput amp = {qmAmp, "amplitude"};
+      VampPlugin qmMFCC = {"qm-vamp-plugins:qm-mfcc", 0, 0};
       VampOutput mfcc = {qmMFCC, "coefficients"};
 
-      pluginList.push_back(amp);
       pluginList.push_back(mfcc);
+      pluginList.push_back(amp);
       return pluginList;
     }
 };
 
 extern "C" VisPlugin* create() {
-    return new Amplitude;
+    return new AmpMFCC;
 }
 
 extern "C" void destroy(VisPlugin* p) {

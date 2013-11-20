@@ -15,12 +15,16 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::flush;
 
 int main(int argc, char** argv)
 {
   bool verbose;
-  string pngfile, visplugin, wavfile, size;
+  string pngfile, visPluginPath, wavfile, size;
   int width=0, height=0;
+  map<VisPlugin::VampPlugin, vector<Plugin::FeatureSet> > vampResults;
+  map<VisPlugin::VampPlugin, VampHost*> vampHosts;
+  set<VisPlugin::VampPlugin> vampPlugins;
 
   // parse command line arguments
   try
@@ -47,7 +51,7 @@ int main(int argc, char** argv)
     // parse arguments
     cmd.parse(argc, argv);
     wavfile = wavFileArg.getValue();
-    visplugin = visPluginArg.getValue();
+    visPluginPath = visPluginArg.getValue();
     pngfile = pngFileArg.getValue();
     size = sizeArg.getValue();
     verbose = verboseArg.getValue();
@@ -74,8 +78,8 @@ int main(int argc, char** argv)
   }
  
   // load the visualization library
-  if (verbose) cout << " * Loading visualization plugin...";
-  void* handle = dlopen(visplugin.c_str(), RTLD_LAZY);
+  if (verbose) cout << " * Loading visualization plugin..." << flush;
+  void* handle = dlopen(visPluginPath.c_str(), RTLD_LAZY);
   if (!handle) {
     cerr << "ERROR: Cannot load library: " << dlerror() << endl;
     return 1;
@@ -101,75 +105,80 @@ int main(int argc, char** argv)
   }
 
   // create an instance of the class
-  VisPlugin* plugin = create_plugin();
+  VisPlugin* visPlugin = create_plugin();
   if (verbose) cout << " [done]" << endl;
 
-  // open .wav file
-  if (verbose) cout << " * Loading audio file...";
-  SNDFILE *sndfile;
-  SF_INFO sfinfo;
-  memset(&sfinfo, 0, sizeof(SF_INFO));
-  sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
-  if (!sndfile) {
-    cerr << ": ERROR: Failed to open input file \""
-      << wavfile << "\": " << sf_strerror(sndfile) << endl;
-    destroy_plugin(plugin);
-    dlclose(handle);
-    return 1;
-  }
-  if (verbose) cout << " [done]" << endl;
-
-  // find and parse vamp plugin name
-  if (verbose) cout << " * Loading Vamp plugins...";
-  istringstream ss(plugin->getVampPlugin());
-  string vampGroup, vampPlugin, vampOutput;
-  getline( ss, vampGroup, ':' );
-  getline( ss, vampPlugin, ':' );
-  getline( ss, vampOutput, ':' );
-
-  // initialise vamp host
-  VampHost host(sndfile, sfinfo, vampGroup+":"+vampPlugin);
-  if (host.findOutputNumber(vampOutput) < 0) {
-    cerr << "ERROR: Requested Vamp output could not be found." << endl;
-    destroy_plugin(plugin);
-    dlclose(handle);
-    return 1;
-  }
-  if (verbose) cout << " [done]" << endl;
-
-  // process audio file
-  if (verbose) cout << " * Processing audio...";
-  vector<Plugin::FeatureSet> results;
-  if (host.run(results)) {
-    cerr << "ERROR: Vamp plugin could not process audio." << endl;
-    destroy_plugin(plugin);
-    dlclose(handle);
-    return 1;
-  }
-  if (verbose) cout << " [done]" << endl;
-
-  if (verbose) cout << " * Refactoring data...";
-  Plugin::FeatureSet resultsFilt;
-  //TODO for each output
-  Plugin::FeatureList featList;
-  int outNum = host.findOutputNumber(vampOutput);
-  for (unsigned int i=0; i<results.size(); i++)
+  // create set of unique plugins
+  VisPlugin::VampOutputList vampOuts = visPlugin->getVampPlugins();
+  for (VisPlugin::VampOutputList::iterator o=vampOuts.begin();
+       o!=vampOuts.end(); o++)
   {
-    Plugin::FeatureList feats = results.at(i)[0];
-    if (feats.size() >= (unsigned int)outNum+1)
-      featList.push_back(feats.at(outNum));
+    VisPlugin::VampOutput out = *o;
+    vampPlugins.insert(out.plugin);
   }
-  resultsFilt[0] = featList;
-  if (verbose) cout << " [done]" << endl;
+
+  // for each unique plugin
+  for (set<VisPlugin::VampPlugin>::iterator p=vampPlugins.begin();
+       p!=vampPlugins.end(); p++)
+  {
+    // load the plugin
+    VisPlugin::VampPlugin plugin = *p;
+    if (verbose) cout << " * Processing Vamp plugin " << plugin.name << "..."
+      << flush;
+
+    SNDFILE *sndfile;
+    SF_INFO sfinfo;
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
+    if (!sndfile) {
+      cerr << ": ERROR: Failed to open input file \""
+        << wavfile << "\": " << sf_strerror(sndfile) << endl;
+      destroy_plugin(visPlugin);
+      dlclose(handle);
+      return 1;
+    }
+    vampHosts[plugin] = new VampHost(sndfile, sfinfo, plugin.name);
+
+    // process audio file
+    if (vampHosts[plugin]->run(vampResults[plugin])) {
+      cerr << "ERROR: Vamp plugin " << plugin.name
+        << " could not process audio." << endl;
+      destroy_plugin(visPlugin);
+      dlclose(handle);
+      return 1;
+    }
+    if (verbose) cout << " [done]" << endl;
+  }
+
+  int count=0;
+  Plugin::FeatureSet resultsFilt;
+  for (VisPlugin::VampOutputList::iterator o=vampOuts.begin();
+       o!=vampOuts.end(); o++)
+  {
+    VisPlugin::VampOutput out = *o;
+    if (verbose) cout << " * Refactoring data for "
+      << out.plugin.name << ":" << out.name << "..." << flush;
+    Plugin::FeatureList featList;
+    int outNum = vampHosts[out.plugin]->findOutputNumber(out.name);
+    for (unsigned int i=0; i<vampResults[out.plugin].size(); i++)
+    {
+      Plugin::FeatureList feats = vampResults[out.plugin].at(i)[0];
+      if (feats.size() >= (unsigned int)outNum+1)
+        featList.push_back(feats.at(outNum));
+    }
+    resultsFilt[count] = featList;
+    count++;
+    if (verbose) cout << " [done]" << endl;
+  }
 
   // set up memory for bitmap
-  if (verbose) cout << " * Generating image...";
+  if (verbose) cout << " * Processing visualization..." << flush;
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
 
   // get bitmap from library
-  if (plugin->ARGB(resultsFilt, width, height, buffer)) {
+  if (visPlugin->ARGB(resultsFilt, width, height, buffer)) {
     cerr << "ERROR: Plugin failed to produce bitmap." << endl;
-    destroy_plugin(plugin);
+    destroy_plugin(visPlugin);
     dlclose(handle);
     return 1;
   }
@@ -177,11 +186,11 @@ int main(int argc, char** argv)
 
   if (pngfile != "")
   {
-    if (verbose) cout << " * Writing PNG...";
+    if (verbose) cout << " * Writing PNG..." << flush;
     PNGWriter pngWriter(width, height, buffer);
     if (pngWriter.write(pngfile.c_str())) {
       cerr << "ERROR: Failed to write PNG." << endl;
-      destroy_plugin(plugin);
+      destroy_plugin(visPlugin);
       dlclose(handle);
       return 1;
     }
@@ -189,12 +198,18 @@ int main(int argc, char** argv)
   }
   else
   {
-    if (verbose) cout << " * Displaying image...";
+    if (verbose) cout << " * Displaying image..." << flush;
     GUI window(width, height, buffer);
     if (verbose) cout << " [done]" << endl;
   }
 
   // clean up
-  destroy_plugin(plugin);
+  for (set<VisPlugin::VampPlugin>::iterator p=vampPlugins.begin();
+       p!=vampPlugins.end(); p++)
+  {
+    VisPlugin::VampPlugin plugin = *p;
+    delete vampHosts[plugin];
+  }
+  destroy_plugin(visPlugin);
   dlclose(handle);
 }
