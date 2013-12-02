@@ -108,6 +108,19 @@ int main(int argc, char** argv)
   VisPlugin* visPlugin = create_plugin();
   if (verbose) cout << " [done]" << endl;
 
+  // open the .wav file
+  SNDFILE *sndfile;
+  SF_INFO sfinfo;
+  memset(&sfinfo, 0, sizeof(SF_INFO));
+  sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
+  if (!sndfile) {
+    cerr << ": ERROR: Failed to open input file \""
+      << wavfile << "\": " << sf_strerror(sndfile) << endl;
+    destroy_plugin(visPlugin);
+    dlclose(handle);
+    return 1;
+  }
+
   // create set of unique plugins
   VisPlugin::VampOutputList vampOuts = visPlugin->getVampPlugins();
   for (VisPlugin::VampOutputList::iterator o=vampOuts.begin();
@@ -121,22 +134,14 @@ int main(int argc, char** argv)
   for (set<VisPlugin::VampPlugin>::iterator p=vampPlugins.begin();
        p!=vampPlugins.end(); p++)
   {
-    // load the plugin
     VisPlugin::VampPlugin plugin = *p;
     if (verbose) cout << " * Processing Vamp plugin " << plugin.name << "..."
       << flush;
 
-    SNDFILE *sndfile;
-    SF_INFO sfinfo;
-    memset(&sfinfo, 0, sizeof(SF_INFO));
-    sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
-    if (!sndfile) {
-      cerr << ": ERROR: Failed to open input file \""
-        << wavfile << "\": " << sf_strerror(sndfile) << endl;
-      destroy_plugin(visPlugin);
-      dlclose(handle);
-      return 1;
-    }
+    // move to beginning of .wav file
+    sf_seek(sndfile, 0, SEEK_SET);
+
+    // initialise the plugin
     vampHosts[plugin] = new VampHost(sndfile, sfinfo, plugin.name);
 
     // process audio file
