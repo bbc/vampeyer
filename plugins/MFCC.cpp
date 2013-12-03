@@ -1,5 +1,10 @@
 #include "VisPlugin.h"
 #include <cairo/cairo.h>
+#include <cmath>
+#include <iostream>
+
+using std::cout;
+using std::endl;
 
 class MFCC: public VisPlugin {
 
@@ -12,7 +17,40 @@ public:
     virtual int ARGB(Plugin::FeatureSet features, int width,
         int height, unsigned char *bitmap)
     {
+      const double pi = 3.14159265358979323846264338327950288;
       unsigned int coeffs = features[0].at(0).values.size();
+      unsigned int filters = 40;
+
+      double IDCT[filters][coeffs];
+      for (unsigned int k=0; k<filters; k++)
+      {
+        for (unsigned int j=1; j<coeffs; j++)
+        {
+          IDCT[k][j] = sqrt(2./(double)coeffs)*cos(pi/coeffs*j*(k+0.5));
+          //cout << IDCT[k][j] << ",";
+        }
+        //cout << endl;
+      }
+
+      int frames = features[0].size();
+      double results[frames][filters];
+      double min = 0;
+      double max = 0;
+      for (int frame=0; frame<frames; frame++)
+      {
+        for (unsigned int k=0; k<filters; k++)
+        {
+          results[frame][k] = sqrt(2)/2*features[0].at(frame).values.at(0);
+          for (unsigned int j=1; j<coeffs; j++)
+          {
+            results[frame][k] += IDCT[k][j]*features[0].at(frame).values.at(j); 
+          }
+          //cout << results[frame][k] << ",";
+          if (results[frame][k] < min) min=results[frame][k];
+          if (results[frame][k] > max) max=results[frame][k];
+        }
+        //cout << endl;
+      }
 
       // set up cairo surface
       cairo_surface_t *surface;
@@ -34,31 +72,23 @@ public:
       cairo_move_to(cr, 0, 1);
 
       // draw amplitude
-      int frames = features[0].size();
+      frames = features[0].size();
       for (int frame=0; frame<frames; frame++)
       {
-        for (unsigned int coeff=0; coeff<coeffs; coeff++)
+        for (unsigned int k=0; k<filters; k++)
         {
-          float value = features[0].at(frame).values.at(coeff); 
-          if (value < -5.0) value = -5.0;
-          if (value > 1.0) value = 1.0;
-          value = (value + 5.0) / 6.0;
-          cairo_set_source_rgba(cr, value,
-                                    value,
-                                    value, 1);
+          double value = (results[frame][k]-min)/(max-min);
+          cairo_set_source_rgba(cr, 1.-value,
+                                    1.-value,
+                                    1.-value, 1);
           cairo_rectangle(cr, (double)frame/(double)frames,
-                              (double)coeff/(double)coeffs,
+                              (double)k/(double)filters,
                               1.0/(double)frames,
-                              1.0/(double)coeffs);
+                              1.0/(double)filters);
           cairo_fill(cr);
         }
       }
-/*
-      // finish line
-      cairo_line_to(cr, 1, 1);
-      cairo_close_path(cr);
-      cairo_fill(cr);
-*/
+
       // clean up
       cairo_destroy(cr);
       cairo_surface_destroy (surface);
