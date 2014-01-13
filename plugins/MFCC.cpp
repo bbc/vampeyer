@@ -9,7 +9,9 @@ using std::endl;
 class MFCC: public VisPlugin {
 
 private:
+
     static const double pi = 3.14159265358979323846264338327950288;
+
     void IDCT(double **feats, double **results, unsigned int filters,
         unsigned int frames)
     {
@@ -49,22 +51,23 @@ public:
       unsigned int frames = features[0].size();
       unsigned int filters = features[0].at(0).values.size();
 
-      double **feats;
+      //double **feats;
       double **results;
-      feats = new double*[frames];
+      //feats = new double*[frames];
       results = new double*[frames];
       for (unsigned int i=0; i<frames; i++) {
         results[i] = new double[filters];
-        feats[i] = new double[filters];
+        //feats[i] = new double[filters];
       }
 
       for (unsigned int i=0; i<frames; i++) {
         for (unsigned int j=0; j<filters; j++) {
-          feats[i][j] = features[0].at(i).values.at(j);
+          //feats[i][j] = features[0].at(i).values.at(j);
+          results[i][j] = features[0].at(i).values.at(j);
         }
       }
 
-      IDCT(feats, results, filters, frames);
+      //IDCT(feats, results, filters, frames);
 
       // find min/max values
       double min=0;
