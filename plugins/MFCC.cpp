@@ -10,8 +10,8 @@ class MFCC: public VisPlugin {
 
 private:
     static const double pi = 3.14159265358979323846264338327950288;
-    void IDCT(unsigned int filters, int frames, double **results,
-        Plugin::FeatureSet features)
+    void IDCT(double **feats, double **results, unsigned int filters,
+        unsigned int frames)
     {
       double matrix[filters][filters];
       for (unsigned int k=0; k<filters; k++)
@@ -24,18 +24,19 @@ private:
 
       double min = 0;
       double max = 0;
-      for (int frame=0; frame<frames; frame++)
+      for (unsigned int frame=0; frame<frames; frame++)
       {
         for (unsigned int k=0; k<filters; k++)
         {
-          results[frame][k] = sqrt(2)/2*features[0].at(frame).values.at(0);
+          results[frame][k] = sqrt(2)/2*feats[frame][0];
           for (unsigned int j=1; j<filters; j++)
-            results[frame][k] += matrix[k][j]*features[0].at(frame).values.at(j); 
+            results[frame][k] += matrix[k][j]*feats[frame][j]; 
           if (results[frame][k] < min) min=results[frame][k];
           if (results[frame][k] > max) max=results[frame][k];
         }
       }
     }
+
 public:
 
     virtual double getVersion() const {
@@ -45,20 +46,30 @@ public:
     virtual int ARGB(Plugin::FeatureSet features, int width,
         int height, unsigned char *bitmap)
     {
-      unsigned int coeffs = features[0].at(0).values.size();
-      unsigned int filters = coeffs;
+      unsigned int frames = features[0].size();
+      unsigned int filters = features[0].at(0).values.size();
 
-      int frames = features[0].size();
+      double **feats;
       double **results;
+      feats = new double*[frames];
       results = new double*[frames];
-      for (unsigned int i=0; i<(unsigned int)frames; i++)
+      for (unsigned int i=0; i<frames; i++) {
         results[i] = new double[filters];
-      IDCT(filters,frames,results,features);
+        feats[i] = new double[filters];
+      }
+
+      for (unsigned int i=0; i<frames; i++) {
+        for (unsigned int j=0; j<filters; j++) {
+          feats[i][j] = features[0].at(i).values.at(j);
+        }
+      }
+
+      IDCT(feats, results, filters, frames);
 
       // find min/max values
       double min=0;
       double max=1;
-      for (unsigned int i=0; i<(unsigned int)frames; i++)
+      for (unsigned int i=0; i<frames; i++)
       {
         for (unsigned int j=0; j<filters; j++)
         {
@@ -88,7 +99,7 @@ public:
 
       // draw amplitude
       frames = features[0].size();
-      for (int frame=0; frame<frames; frame++)
+      for (unsigned int frame=0; frame<frames; frame++)
       {
         for (unsigned int k=0; k<filters; k++)
         {
