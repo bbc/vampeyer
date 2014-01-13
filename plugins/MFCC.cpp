@@ -8,6 +8,34 @@ using std::endl;
 
 class MFCC: public VisPlugin {
 
+private:
+    static const double pi = 3.14159265358979323846264338327950288;
+    void IDCT(unsigned int filters, int frames, double **results,
+        Plugin::FeatureSet features)
+    {
+      double matrix[filters][filters];
+      for (unsigned int k=0; k<filters; k++)
+      {
+        for (unsigned int j=1; j<filters; j++)
+        {
+          matrix[k][j] = sqrt(2./(double)filters)*cos(pi/filters*j*(k+0.5));
+        }
+      }
+
+      double min = 0;
+      double max = 0;
+      for (int frame=0; frame<frames; frame++)
+      {
+        for (unsigned int k=0; k<filters; k++)
+        {
+          results[frame][k] = sqrt(2)/2*features[0].at(frame).values.at(0);
+          for (unsigned int j=1; j<filters; j++)
+            results[frame][k] += matrix[k][j]*features[0].at(frame).values.at(j); 
+          if (results[frame][k] < min) min=results[frame][k];
+          if (results[frame][k] > max) max=results[frame][k];
+        }
+      }
+    }
 public:
 
     virtual double getVersion() const {
@@ -17,39 +45,26 @@ public:
     virtual int ARGB(Plugin::FeatureSet features, int width,
         int height, unsigned char *bitmap)
     {
-      const double pi = 3.14159265358979323846264338327950288;
       unsigned int coeffs = features[0].at(0).values.size();
-      unsigned int filters = 40;
-
-      double IDCT[filters][coeffs];
-      for (unsigned int k=0; k<filters; k++)
-      {
-        for (unsigned int j=1; j<coeffs; j++)
-        {
-          IDCT[k][j] = sqrt(2./(double)coeffs)*cos(pi/coeffs*j*(k+0.5));
-          //cout << IDCT[k][j] << ",";
-        }
-        //cout << endl;
-      }
+      unsigned int filters = coeffs;
 
       int frames = features[0].size();
-      double results[frames][filters];
-      double min = 0;
-      double max = 0;
-      for (int frame=0; frame<frames; frame++)
+      double **results;
+      results = new double*[frames];
+      for (unsigned int i=0; i<(unsigned int)frames; i++)
+        results[i] = new double[filters];
+      IDCT(filters,frames,results,features);
+
+      // find min/max values
+      double min=0;
+      double max=1;
+      for (unsigned int i=0; i<(unsigned int)frames; i++)
       {
-        for (unsigned int k=0; k<filters; k++)
+        for (unsigned int j=0; j<filters; j++)
         {
-          results[frame][k] = sqrt(2)/2*features[0].at(frame).values.at(0);
-          for (unsigned int j=1; j<coeffs; j++)
-          {
-            results[frame][k] += IDCT[k][j]*features[0].at(frame).values.at(j); 
-          }
-          //cout << results[frame][k] << ",";
-          if (results[frame][k] < min) min=results[frame][k];
-          if (results[frame][k] > max) max=results[frame][k];
+          if (results[i][j] < min) min=results[i][j];
+          if (results[i][j] > max) max=results[i][j];
         }
-        //cout << endl;
       }
 
       // set up cairo surface
