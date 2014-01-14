@@ -6,6 +6,7 @@
 #include <vector>
 
 using Vamp::Plugin;
+using Vamp::RealTime;
 
 class VisPlugin
 {
