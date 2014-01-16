@@ -163,7 +163,7 @@ public:
 
       VampPlugin bbcPeaks = {"bbc-vamp-plugins:bbc-peaks", 0, 0};
       VampOutput peaks = {bbcPeaks, "peaks"};
-      VampPlugin aubioSilent = {"vamp-aubio:aubiosilence", 0, 0};
+      VampPlugin aubioSilent = {"vamp-aubio:aubiosilence", 256, 256};
       VampOutput silent = {aubioSilent, "silent"};
 
       pluginList.push_back(peaks);

@@ -74,7 +74,11 @@ int VisHost::process(string wavfile)
     sf_seek(sndfile, 0, SEEK_SET);
 
     // initialise the plugin
-    vampHosts[plugin] = new VampHost(sndfile, sfinfo, plugin.name);
+    vampHosts[plugin] = new VampHost(sndfile,
+                                     sfinfo,
+                                     plugin.name,
+                                     plugin.blockSize,
+                                     plugin.stepSize);
 
     // process audio file
     if (vampHosts[plugin]->run(vampResults[plugin])) {
