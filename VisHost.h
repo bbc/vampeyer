@@ -10,12 +10,11 @@ class VisHost
 {
   protected:
     void* handle;
-    create_t* create_plugin;
     destroy_t* destroy_plugin;
+    VisPlugin* visPlugin;
     string pluginPath;
     SNDFILE *sndfile;
     SF_INFO sfinfo;
-    VisPlugin* visPlugin;
     Plugin::FeatureSet resultsFilt;
     map<VisPlugin::VampPlugin, vector<Plugin::FeatureSet> > vampResults;
     map<VisPlugin::VampPlugin, VampHost*> vampHosts;

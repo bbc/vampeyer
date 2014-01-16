@@ -3,7 +3,7 @@
 VisHost::VisHost(string pluginPath_in)
 {
   pluginPath = pluginPath_in;
-  verbose=true;
+  verbose=false;
 }
 
 int VisHost::init()
@@ -20,7 +20,7 @@ int VisHost::init()
   dlerror();
 
   // load the symbols
-  create_plugin = (create_t*) dlsym(handle, "create");
+  create_t* create_plugin = (create_t*) dlsym(handle, "create");
   const char* dlsym_error = dlerror();
   if (dlsym_error) {
     cerr << "ERROR: Cannot load symbol create: " << dlsym_error << endl;
@@ -38,6 +38,8 @@ int VisHost::init()
   // create an instance of the class
   visPlugin = create_plugin();
   if (verbose) cout << " [done]" << endl;
+
+  return 0;
 }
 
 int VisHost::process(string wavfile)
@@ -48,8 +50,6 @@ int VisHost::process(string wavfile)
   if (!sndfile) {
     cerr << ": ERROR: Failed to open input file \""
       << wavfile << "\": " << sf_strerror(sndfile) << endl;
-    destroy_plugin(visPlugin);
-    dlclose(handle);
     return 1;
   }
 
@@ -80,8 +80,6 @@ int VisHost::process(string wavfile)
     if (vampHosts[plugin]->run(vampResults[plugin])) {
       cerr << "ERROR: Vamp plugin " << plugin.name
         << " could not process audio." << endl;
-      destroy_plugin(visPlugin);
-      dlclose(handle);
       return 1;
     }
     if (verbose) cout << " [done]" << endl;
@@ -106,6 +104,8 @@ int VisHost::process(string wavfile)
     count++;
     if (verbose) cout << " [done]" << endl;
   }
+
+  return 0;
 }
 
 int VisHost::render(int width, int height, unsigned char *buffer)
@@ -117,11 +117,11 @@ int VisHost::render(int width, int height, unsigned char *buffer)
   // get bitmap from library
   if (visPlugin->ARGB(resultsFilt, width, height, buffer)) {
     cerr << "ERROR: Plugin failed to produce bitmap." << endl;
-    destroy_plugin(visPlugin);
-    dlclose(handle);
     return 1;
   }
   if (verbose) cout << " [done]" << endl;
+
+  return 0;
 }
 
 VisHost::~VisHost()

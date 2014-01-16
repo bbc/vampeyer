@@ -75,11 +75,30 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  // declare plugin and buffer space
   unsigned char buffer[width*height*BYTES_PER_PIXEL];
   VisHost visHost(visPluginPath);
-  visHost.init();
-  visHost.process(wavfile);
-  visHost.render(width, height, buffer);
+
+  // set verbosity level
+  visHost.verbose = verbose;
+
+  // initialise plugin 
+  if (visHost.init()) {
+    cerr << "ERROR: Could not initialise visualisation plugin." << endl;
+    return 1;
+  }
+
+  // run audio analysis
+  if (visHost.process(wavfile)) {
+    cerr << "ERROR: Could not process audio file." << endl;
+    return 1;
+  }
+
+  // draw visualisation
+  if (visHost.render(width, height, buffer)) {
+    cerr << "ERROR: Could not render visualisation." << endl;
+    return 1;
+  }
 
   if (pngfile != "")
   {
