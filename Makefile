@@ -1,7 +1,7 @@
 CC=g++
 
 PROG=main
-SOURCES=VampHost.cpp PNGWriter.cpp GUI.cpp main.cpp
+SOURCES=VampHost.cpp VisHost.cpp PNGWriter.cpp GUI.cpp main.cpp
 CFLAGS=-c -g -Wall -I/home/chrisbau/builds/vamp-plugin-sdk-2.5
 LDFLAGS=-L/home/chrisbau/builds/vamp-plugin-sdk-2.5 -ldl -lpng -lsndfile \
 				-lvamp-hostsdk -lfltk
