@@ -18,7 +18,7 @@ class VisPlugin
 
     typedef struct _VampParameter
     {
-      const char *name;
+      std::string name;
       float value;
 
       bool operator<(const _VampParameter &n) const { 
@@ -28,12 +28,14 @@ class VisPlugin
       }
     } VampParameter;
 
+    typedef std::vector<VampParameter> VampParameterList;
+
     typedef struct _VampPlugin
     {
       const char *name;
       int blockSize;
       int stepSize;
-      std::vector<VampParameter> parameters;
+      VampParameterList parameters;
 
       bool operator<( const _VampPlugin &n ) const {
         if (this->name < n.name) return true;

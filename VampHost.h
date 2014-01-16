@@ -102,5 +102,6 @@ class VampHost
     int findOutputNumber(string outputName);
     int getBlockSize();
     int getStepSize();
+    void setParameter(string name, float value);
 };
 #endif

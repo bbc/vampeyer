@@ -273,3 +273,8 @@ int VampHost::getStepSize()
 {
   return stepSize;
 }
+
+void VampHost::setParameter(string name, float value)
+{
+  plugin->setParameter(name, value);
+}

@@ -80,6 +80,14 @@ int VisHost::process(string wavfile)
                                      plugin.blockSize,
                                      plugin.stepSize);
 
+    // set the parameters
+    for (VisPlugin::VampParameterList::iterator r=plugin.parameters.begin();
+        r!=plugin.parameters.end(); r++)
+    {
+      VisPlugin::VampParameter param = *r;
+      vampHosts[plugin]->setParameter(param.name, param.value);
+    }
+
     // process audio file
     if (vampHosts[plugin]->run(vampResults[plugin])) {
       cerr << "ERROR: Vamp plugin " << plugin.name
