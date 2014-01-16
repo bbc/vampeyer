@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 using std::cout;
 using std::endl;
@@ -58,20 +59,16 @@ private:
     return false;
   }
   
-  //int closest(double cur, double *times, unsigned int length)
-  //{
-    //double minDist=99999999;
-    //int minPoint=-1;
-    //for (unsigned int i=0; i<length; i++)
-    //{
-      //double dist=std::abs(cur-times[i]);
-      //if (dist < minDist) {
-        //minDist=dist;
-        //minPoint=(int)i;
-      //}
-    //}
-    //return minPoint;
-  //}
+  double closest(double cur, double *times, unsigned int length)
+  {
+    double minDist=99999999;
+    for (unsigned int i=0; i<length; i++)
+    {
+      double dist=std::abs(cur-times[i]);
+      if (dist < minDist) minDist=dist;
+    }
+    return minDist;
+  }
 
 public:
 
@@ -123,14 +120,21 @@ public:
         double time = stepSize/sr*peakFrame; 
         if (between(time, silentStart, silentEnd, silentPoints))
         {
-          double colour=0.0;
-          cairo_set_source_rgba(cr, colour, colour, colour, 1.0);
-          cairo_rectangle(cr, (double)peakFrame/(double)peakFrames,
-              0.0,
-              2.0/(double)peakFrames, // TODO Fix bodge
-              1.0);
-          cairo_fill(cr);
+          cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
         }
+        else
+        {
+          double startDist = closest(time, silentStart, silentPoints);
+          double endDist = closest(time, silentEnd, silentPoints);
+          double dist=std::max(startDist, endDist);
+          if (dist>1) dist=1.0;
+          cairo_set_source_rgba(cr, dist, dist, dist, 1.0);
+        }
+        cairo_rectangle(cr, (double)peakFrame/(double)peakFrames,
+            0.0,
+            2.0/(double)peakFrames, // TODO Fix bodge
+            1.0);
+        cairo_fill(cr);
 
         // get peak values
         //double peak1 = features[0].at(peakFrame).values[0];
