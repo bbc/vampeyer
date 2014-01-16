@@ -63,7 +63,8 @@ class VisPlugin
     virtual int ARGB(Plugin::FeatureSet features,
                      int width,
                      int height,
-                     unsigned char *bitmap)
+                     unsigned char *bitmap,
+                     int sampleRate)
     {
       return -1;
     }

@@ -10,7 +10,7 @@ public:
     }
 
     virtual int ARGB(Plugin::FeatureSet features, int width,
-        int height, unsigned char *bitmap)
+        int height, unsigned char *bitmap, int sampleRate)
     {
       // set up cairo surface
       cairo_surface_t *surface;

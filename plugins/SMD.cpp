@@ -8,8 +8,8 @@
 using std::cout;
 using std::endl;
 
-#define MIN_FREQ 100
-#define MAX_FREQ 22050
+#define AUBIO_STEP 256
+#define AUBIO_THRESH -40.f
 #define PALETTE_RED {0.196, 0, 1, 1}
 #define PALETTE_GREEN {0, 0.863, 0.878, 0.274}
 #define PALETTE_BLUE {0.784, 0.314, 0, 0}
@@ -77,15 +77,8 @@ public:
     }
 
     virtual int ARGB(Plugin::FeatureSet features, int width,
-        int height, unsigned char *bitmap)
+        int height, unsigned char *bitmap, int sampleRate)
     {
-      const double sr=44100;
-      const double stepSize=256;
-      const double lower = MIN_FREQ;
-      const double higher = MAX_FREQ;
-      const double lower_log = log10(lower);
-      const double higher_log = log10(higher);
-
       // set up cairo surface
       cairo_surface_t *surface;
       cairo_format_t format = CAIRO_FORMAT_ARGB32;
@@ -117,19 +110,19 @@ public:
       // for each peak frame, draw a colored line
       for (unsigned int peakFrame=0; peakFrame<peakFrames; peakFrame++)
       {
-        double time = stepSize/sr*peakFrame; 
-        if (between(time, silentStart, silentEnd, silentPoints))
-        {
-          cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 1.0);
-        }
-        else
+        // calculate time of frame
+        double time = AUBIO_STEP/(double)sampleRate*peakFrame; 
+
+        // if frame is in a silence, draw as black
+        double dist=0;
+        if (!between(time, silentStart, silentEnd, silentPoints))
         {
           double startDist = closest(time, silentStart, silentPoints);
           double endDist = closest(time, silentEnd, silentPoints);
-          double dist=std::max(startDist, endDist);
+          dist=std::max(startDist, endDist);
           if (dist>1) dist=1.0;
-          cairo_set_source_rgba(cr, dist, dist, dist, 1.0);
         }
+        cairo_set_source_rgba(cr, dist, dist, dist, 1.0);
         cairo_rectangle(cr, (double)peakFrame/(double)peakFrames,
             0.0,
             2.0/(double)peakFrames, // TODO Fix bodge
@@ -165,11 +158,11 @@ public:
       VampOutput peaks = {bbcPeaks, "peaks"};
 
       VampParameterList aubioSilentParams;
-      VampParameter thresh = {"silencethreshold", -40.f};
+      VampParameter thresh = {"silencethreshold", AUBIO_THRESH};
       aubioSilentParams.push_back(thresh);
       VampPlugin aubioSilent = {"vamp-aubio:aubiosilence",
-                                256,
-                                256,
+                                AUBIO_STEP,
+                                AUBIO_STEP,
                                 aubioSilentParams};
       VampOutput silent = {aubioSilent, "silent"};
 

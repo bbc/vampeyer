@@ -52,6 +52,7 @@ int VisHost::process(string wavfile)
       << wavfile << "\": " << sf_strerror(sndfile) << endl;
     return 1;
   }
+  sampleRate = sfinfo.samplerate;
 
   // create set of unique plugins
   VisPlugin::VampOutputList vampOuts = visPlugin->getVampPlugins();
@@ -127,7 +128,7 @@ int VisHost::render(int width, int height, unsigned char *buffer)
   if (verbose) cout << " * Processing visualization..." << flush;
 
   // get bitmap from library
-  if (visPlugin->ARGB(resultsFilt, width, height, buffer)) {
+  if (visPlugin->ARGB(resultsFilt, width, height, buffer, sampleRate)) {
     cerr << "ERROR: Plugin failed to produce bitmap." << endl;
     return 1;
   }

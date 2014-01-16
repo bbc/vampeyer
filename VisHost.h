@@ -15,6 +15,7 @@ class VisHost
     string pluginPath;
     SNDFILE *sndfile;
     SF_INFO sfinfo;
+    int sampleRate;
     Plugin::FeatureSet resultsFilt;
     map<VisPlugin::VampPlugin, vector<Plugin::FeatureSet> > vampResults;
     map<VisPlugin::VampPlugin, VampHost*> vampHosts;

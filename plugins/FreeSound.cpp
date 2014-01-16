@@ -53,7 +53,7 @@ public:
     }
 
     virtual int ARGB(Plugin::FeatureSet features, int width,
-        int height, unsigned char *bitmap)
+        int height, unsigned char *bitmap, int sampleRate)
     {
       const double lower = MIN_FREQ;
       const double higher = MAX_FREQ;

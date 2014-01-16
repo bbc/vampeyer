@@ -46,7 +46,7 @@ public:
     }
 
     virtual int ARGB(Plugin::FeatureSet features, int width,
-        int height, unsigned char *bitmap)
+        int height, unsigned char *bitmap, int sampleRate)
     {
       unsigned int frames = features[0].size();
       unsigned int filters = features[0].at(0).values.size();
