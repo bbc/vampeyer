@@ -4,6 +4,7 @@
 
 #define MIN_FREQ 100
 #define MAX_FREQ 22050
+#define BG_COLOUR 0, 0, 0, 1
 #define PALETTE_RED {0.196, 0, 1, 1}
 #define PALETTE_GREEN {0, 0.863, 0.878, 0.274}
 #define PALETTE_BLUE {0.784, 0.314, 0, 0}
@@ -71,7 +72,7 @@ public:
       cairo_t *cr;
       cr = cairo_create(surface);
       cairo_scale(cr, width, height);
-      cairo_set_source_rgba(cr, 0, 0, 0, 1);
+      cairo_set_source_rgba(cr, BG_COLOUR);
       cairo_paint(cr);
 
       // find number of frames for peak/spec centroid
@@ -98,7 +99,7 @@ public:
                           0.5-(peak1*0.5));
         cairo_line_to(cr, (double)peakFrame/(double)peakFrames,
                           0.5-(peak2*0.5));
-        cairo_set_line_width (cr, 1.0/(double)peakFrames);
+        cairo_set_line_width (cr, 0.1/(double)width);
         cairo_stroke (cr);
       }
 
