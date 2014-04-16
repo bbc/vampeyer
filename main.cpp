@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   }
 
   // declare plugin and buffer space
-  unsigned char buffer[width*height*BYTES_PER_PIXEL];
+  unsigned char* buffer = new unsigned char[width*height*BYTES_PER_PIXEL];
   VisHost visHost(visPluginPath);
 
   // set verbosity level
