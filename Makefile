@@ -12,7 +12,9 @@ PLUGINS=$(PLUGINS_DIR)/Amplitude.so \
 				$(PLUGINS_DIR)/MFCC.so \
 				$(PLUGINS_DIR)/AmpMFCC.so \
 				$(PLUGINS_DIR)/FreeSound.so \
-				$(PLUGINS_DIR)/SMD.so
+				$(PLUGINS_DIR)/SMD.so \
+				$(PLUGINS_DIR)/Waveform.so \
+				$(PLUGINS_DIR)/SMDWaveform.so
 PLUGINS_CFLAGS=-Wall -shared -fPIC
 PLUGINS_LDFLAGS=-lcairo
 
