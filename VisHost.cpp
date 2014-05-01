@@ -105,14 +105,8 @@ int VisHost::process(string wavfile)
     VisPlugin::VampOutput out = *o;
     if (verbose) cout << " * Refactoring data for "
       << out.plugin.name << ":" << out.name << "..." << flush;
-    Plugin::FeatureList featList;
-    int outNum = vampHosts[out.plugin]->findOutputNumber(out.name);
-    for (unsigned int i=0; i<vampResults[out.plugin].size(); i++)
-    {
-      Plugin::FeatureList feats = vampResults[out.plugin].at(i)[0];
-      if (feats.size() >= (unsigned int)outNum+1)
-        featList.push_back(feats.at(outNum));
-    }
+    unsigned int outNum = vampHosts[out.plugin]->findOutputNumber(out.name);
+    Plugin::FeatureList featList = vampResults[out.plugin][outNum];
     resultsFilt[count] = featList;
     count++;
     if (verbose) cout << " [done]" << endl;

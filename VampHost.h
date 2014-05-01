@@ -98,7 +98,7 @@ class VampHost
              int blockSize=0,
              int stepSize=0);
     ~VampHost();
-    int run(vector<Plugin::FeatureSet>& results);
+    int run(Plugin::FeatureSet& results);
     int findOutputNumber(string outputName);
     int getBlockSize();
     int getStepSize();

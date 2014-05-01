@@ -166,7 +166,7 @@ int VampHost::findOutputNumber(string outputName)
   return -1;
 }
 
-int VampHost::run(vector<Plugin::FeatureSet>& results)
+int VampHost::run(Plugin::FeatureSet& results)
 {
     int overlapSize = blockSize - stepSize;
     sf_count_t currentStep = 0;
@@ -250,7 +250,14 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
 
         // show results
         rt = RealTime::frame2RealTime(currentStep * stepSize, sampleRate);
-        results.push_back(plugin->process(plugbuf, rt));
+        Plugin::FeatureSet tmpResults = plugin->process(plugbuf, rt);
+        for(Plugin::FeatureSet::iterator it = tmpResults.begin();
+            it != tmpResults.end(); ++it)
+        {
+          int key = it->first;
+          if (it->second.size() > 0)
+            results[key].push_back(it->second[0]);
+        }
 
         // count the steps
         ++currentStep;
@@ -259,7 +266,14 @@ int VampHost::run(vector<Plugin::FeatureSet>& results)
 
     // show remaining results
     rt = RealTime::frame2RealTime(currentStep * stepSize, sampleRate);
-    results.push_back(plugin->getRemainingFeatures());
+    Plugin::FeatureSet tmpResults = plugin->getRemainingFeatures();
+    for(Plugin::FeatureSet::iterator it = tmpResults.begin();
+        it != tmpResults.end(); ++it)
+    {
+      int key = it->first;
+      if (it->second.size() > 0)
+        results[key] = it->second;
+    }
 
     return 0;
 }
