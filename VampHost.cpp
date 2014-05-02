@@ -85,8 +85,9 @@ VampHost::VampHost(SNDFILE *sndfile_in,
 
   // if plugin failed to load, throw error
   if (!plugin) {
-    cerr << ": ERROR: Failed to load plugin \"" << plugid
+    cerr << "ERROR: Failed to load plugin \"" << plugid
          << "\" from library \"" << soname << "\"" << endl;
+    exit(1);
   }
 
   // set up block size
@@ -137,6 +138,7 @@ VampHost::VampHost(SNDFILE *sndfile_in,
   // check for no outputs
   if (outputs.empty()) {
     cerr << "ERROR: Plugin has no outputs!" << endl;
+    exit(1);
   }
 }
 
