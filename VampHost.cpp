@@ -255,8 +255,9 @@ int VampHost::run(Plugin::FeatureSet& results)
             it != tmpResults.end(); ++it)
         {
           int key = it->first;
-          if (it->second.size() > 0)
-            results[key].push_back(it->second[0]);
+          Plugin::FeatureList feats = it->second;
+          for (unsigned int i=0; i<feats.size(); i++)
+            results[key].push_back(feats[i]);
         }
 
         // count the steps
@@ -271,8 +272,9 @@ int VampHost::run(Plugin::FeatureSet& results)
         it != tmpResults.end(); ++it)
     {
       int key = it->first;
-      if (it->second.size() > 0)
-        results[key] = it->second;
+      Plugin::FeatureList feats = it->second;
+      for (unsigned int i=0; i<feats.size(); i++)
+        results[key].push_back(feats[i]);
     }
 
     return 0;
