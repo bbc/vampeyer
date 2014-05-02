@@ -48,11 +48,17 @@ int VisHost::process(string wavfile)
   memset(&sfinfo, 0, sizeof(SF_INFO));
   sndfile = sf_open(wavfile.c_str(), SFM_READ, &sfinfo);
   if (!sndfile) {
-    cerr << ": ERROR: Failed to open input file \""
+    cerr << "ERROR: Failed to open input file \""
       << wavfile << "\": " << sf_strerror(sndfile) << endl;
     return 1;
   }
   sampleRate = sfinfo.samplerate;
+
+  // check channels
+  if (sfinfo.channels != 1) {
+    cerr << "ERROR: Only mono files currently supported." << endl;
+    return 1;
+  }
 
   // create set of unique plugins
   VisPlugin::VampOutputList vampOuts = visPlugin->getVampPlugins();
