@@ -1,4 +1,4 @@
-#include "plugins/VisPlugin.h"
+#include "VisPlugin.h"
 #include "VisHost.h"
 #include "VampHost.h"
 #include "GUI.h"
