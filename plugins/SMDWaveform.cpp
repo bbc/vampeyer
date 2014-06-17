@@ -4,8 +4,51 @@
 
 #define BG_COLOUR 0.866, 0.874, 0.882, 1
 #define WAVEFORM_COLOUR 0.38, 0.423, 1, 1
+#define PALETTE_RED {0.38, 0.38, 1.0}
+#define PALETTE_GREEN {0.423, 0.423, 0.38}
+#define PALETTE_BLUE {1.0, 1.0, 0.38}
+#define PALETTE_LENGTH 3
+
+using std::cerr;
+using std::endl;
 
 class Waveform: public VisPlugin {
+
+private:
+
+  // given a list of gradient values, return the value of a point
+  // on that gradient
+  //
+  // e.g. color={1.0, 0.5, 0.0}
+  // colormap(0.25, color, 3) returns 0.75
+  double colormap(double value, double color[], int length)
+  {
+    int iter=0;
+    double step = 1.0/(double)(length-1);
+    if (value>=1) return color[length-1];
+    if (value<=0) return color[0];
+    while (value > step*(iter+1)) iter++;
+    double weight = (value-step*(double)iter)/step;
+    return (1.0-weight)*color[iter] + weight*color[iter+1];
+  }
+
+  double red(double value)
+  {
+    double colors[] = PALETTE_RED;
+    return colormap(value, colors, PALETTE_LENGTH);
+  }
+
+  double green(double value)
+  {
+    double colors[] = PALETTE_GREEN;
+    return colormap(value, colors, PALETTE_LENGTH);
+  }
+
+  double blue(double value)
+  {
+    double colors[] = PALETTE_BLUE;
+    return colormap(value, colors, PALETTE_LENGTH);
+  }
 
 public:
 
@@ -35,55 +78,18 @@ public:
 
       // find number of frames for peak/rms
       unsigned int peakFrames = features[0].size();
-      unsigned int rmsFrames = features[1].size();
-      unsigned int zcrFrames = features[2].size();
+      unsigned int dipFrames = features[1].size();
 
-      double rmsGlobalMax=0.0;
-      for (unsigned int peakFrame=0; peakFrame<peakFrames-1; peakFrame++)
-      {
-        //unsigned int rmsStart = floor((double)peakFrame/
-            //(double)peakFrames*(double)rmsFrames);
-        //unsigned int rmsEnd = floor((double)(peakFrame+1)/
-            //(double)peakFrames*(double)rmsFrames)-1;
-
-        //double rmsLocalMean = 1.0;
-        //for (unsigned int rmsFrame=rmsStart; rmsFrame<rmsEnd+1; rmsFrame++)
-        //{
-          //double rms = features[1].at(rmsFrame).values[0];
-          //rmsLocalMean+=rms;
-        //}
-        //rmsLocalMean = rmsLocalMean / (rmsEnd-rmsStart+1);
-
-        //if (rmsLocalMean != 1.0 && rmsLocalMean > rmsGlobalMax)
-          //rmsGlobalMax = rmsLocalMean;
-        double rmszcr = features[1].at(peakFrame).values[0]*
-          features[2].at(peakFrame).values[0];
-        if (rmszcr > rmsGlobalMax)
-         rmsGlobalMax = rmszcr; 
-      }
+      if (peakFrames != dipFrames) cerr << "Warning: Frames for input features\
+        do not match!" << endl;
 
       // for each peak frame, draw a colored line
       for (unsigned int peakFrame=0; peakFrame<peakFrames-1; peakFrame++)
       {
-        // find start and end of RMS values
-        //unsigned int rmsStart = floor((double)peakFrame/
-            //(double)peakFrames*(double)rmsFrames);
-        //unsigned int rmsEnd = floor((double)(peakFrame+1)/
-            //(double)peakFrames*(double)rmsFrames)-1;
+        // get pDip value and set colour
+        double dip = features[1].at(peakFrame).values[0];
+        cairo_set_source_rgba(cr, red(dip), green(dip), blue(dip), 1);
 
-        //double rmsMean=1.0;
-        //for (unsigned int rmsFrame=rmsStart; rmsFrame<rmsEnd+1; rmsFrame++)
-        //{
-          //double rms = features[1].at(rmsFrame).values[0];
-          //rmsMean+=rms;
-        //}
-        //rmsMean = rmsMean / (rmsEnd-rmsStart+1);
-        //cairo_set_source_rgba(cr, 1.0-rmsMean/rmsGlobalMax,
-                                  //1.0-rmsMean/rmsGlobalMax,
-                                  //1.0-rmsMean/rmsGlobalMax, 1);
-        double rmszcr = features[1].at(peakFrame).values[0]*
-          features[2].at(peakFrame).values[0]/rmsGlobalMax;
-        cairo_set_source_rgba(cr, rmszcr, rmszcr, rmszcr, 1); 
         // get peak values
         double peak1 = features[0].at(peakFrame).values[0];
         double peak2 = features[0].at(peakFrame).values[1];
@@ -110,15 +116,11 @@ public:
       VampPlugin bbcPeaks = {"bbc-vamp-plugins:bbc-peaks", 1024, 1024};
       VampOutput peaks = {bbcPeaks, "peaks"};
 
-      VampPlugin bbcRMS = {"bbc-vamp-plugins:bbc-energy", 1024, 1024};
-      VampOutput rms = {bbcRMS, "rmsenergy"};
-
-      VampPlugin libxZCR = {"vamp-libxtract:zcr", 1024, 1024};
-      VampOutput zcr = {libxZCR, "zcr"};
+      VampPlugin bbcEnergy = {"bbc-vamp-plugins:bbc-energy", 1024, 1024};
+      VampOutput pdip = {bbcEnergy, "pdip"};
 
       pluginList.push_back(peaks);
-      pluginList.push_back(rms);
-      pluginList.push_back(zcr);
+      pluginList.push_back(pdip);
       return pluginList;
     }
 };
