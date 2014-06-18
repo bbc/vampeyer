@@ -1,3 +1,4 @@
+CC=g++
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.so)
 CFLAGS=-Wall -shared -fPIC -I../

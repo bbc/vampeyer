@@ -1,6 +1,20 @@
-/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*-  vi:set ts=8 sts=4 sw=4: */
-
 /*
+   Copyright 2014 British Broadcasting Corporation
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   -----------------------------------------------------------------------
+
     Vamp
 
     An API for audio analysis and feature extraction plugins.
@@ -33,18 +47,6 @@
     use or other dealings in this Software without prior written
     authorization.
 */
-
-
-/*
- * This "simple" Vamp plugin host is no longer as simple as it was; it
- * now has a lot of options and includes a lot of code to handle the
- * various useful listing modes it supports.
- *
- * However, the runPlugin function still contains a reasonable
- * implementation of a fairly generic Vamp plugin host capable of
- * evaluating a given output on a given plugin for a sound file read
- * via libsndfile.
- */
 
 #include "VampHost.h"
 
@@ -144,6 +146,7 @@ VampHost::VampHost(SNDFILE *sndfile_in,
 
 VampHost::~VampHost()
 {
+  // clean up
   delete[] filebuf;
   for (int c = 0; c < channels; ++c) delete[] plugbuf[c];
   delete[] plugbuf;
@@ -178,17 +181,6 @@ int VampHost::run(Plugin::FeatureSet& results)
     RealTime rt;
     PluginWrapper *wrapper = 0;
     RealTime adjustment = RealTime::zeroTime;
-
-    // Note that the following would be much simpler if we used a
-    // PluginBufferingAdapter as well -- i.e. if we had passed
-    // PluginLoader::ADAPT_ALL to loader->loadPlugin() above, instead
-    // of ADAPT_ALL_SAFE.  Then we could simply specify our own block
-    // size, keep the step size equal to the block size, and ignore
-    // the plugin's bleatings.  However, there are some issues with
-    // using a PluginBufferingAdapter that make the results sometimes
-    // technically different from (if effectively the same as) the
-    // un-adapted plugin, so we aren't doing that here.  See the
-    // PluginBufferingAdapter documentation for details.
 
     // initialise plugin
     if (!plugin->initialise(channels, stepSize, blockSize)) {

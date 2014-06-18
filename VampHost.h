@@ -1,8 +1,20 @@
-#ifndef VAMPHOST_HPP
-#define VAMPHOST_HPP
-/* -*- c-basic-offset: 4 indent-tabs-mode: nil -*-  vi:set ts=8 sts=4 sw=4: */
-
 /*
+   Copyright 2014 British Broadcasting Corporation
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   ---------------------------------------------------------------------
+
     Vamp
 
     An API for audio analysis and feature extraction plugins.
@@ -35,18 +47,8 @@
     use or other dealings in this Software without prior written
     authorization.
 */
-
-
-/*
- * This "simple" Vamp plugin host is no longer as simple as it was; it
- * now has a lot of options and includes a lot of code to handle the
- * various useful listing modes it supports.
- *
- * However, the runPlugin function still contains a reasonable
- * implementation of a fairly generic Vamp plugin host capable of
- * evaluating a given output on a given plugin for a sound file read
- * via libsndfile.
- */
+#ifndef VAMPHOST_HPP
+#define VAMPHOST_HPP
 
 #include <vamp-hostsdk/PluginHostAdapter.h>
 #include <vamp-hostsdk/PluginInputDomainAdapter.h>
