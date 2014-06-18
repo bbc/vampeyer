@@ -16,7 +16,7 @@
 #ifndef VISHOST_H
 #define VISHOST_H
 
-#include "plugins/VisPlugin.h"
+#include "VisPlugin.h"
 #include "VampHost.h"
 #include <dlfcn.h>
 #include <string>

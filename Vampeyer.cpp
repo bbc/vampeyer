@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#include "plugins/VisPlugin.h"
+#include "VisPlugin.h"
 #include "VisHost.h"
 #include "VampHost.h"
 #include "GUI.h"
@@ -116,7 +116,6 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  // if filename is set, write png
   if (pngfile != "")
   {
     if (verbose) cout << " * Writing PNG..." << flush;
@@ -127,7 +126,6 @@ int main(int argc, char** argv)
     }
     if (verbose) cout << " [done]" << endl;
   }
-  // otherwise, display image on screen
   else
   {
     if (verbose) cout << " * Displaying image..." << flush;
