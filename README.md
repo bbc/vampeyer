@@ -1,4 +1,4 @@
-# Vamp<font color="red">eye</font>r
+# Vamp<font color="red">eye</font>r <sup>beta</sup>
 A program and plugin framework for generating images from audio files,
 using [Vamp](http://vamp-plugins.org/) audio analysis plugins.
 
