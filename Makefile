@@ -1,7 +1,7 @@
 CC=g++
 
 PROG=vampeyer
-PREFIX=/usr/local
+PREFIX=/usr/bin
 SOURCES=VampHost.cpp VisHost.cpp PNGWriter.cpp GUI.cpp Vampeyer.cpp
 CFLAGS=-c -g -Wall
 LDFLAGS=-ldl -lpng -lsndfile -lvamp-hostsdk -lfltk
@@ -19,4 +19,4 @@ clean:
 	rm -f $(OBJECTS) $(PROG)
 
 install: all
-	install -m 0755 $(PROG) $(PREFIX)/bin
+	install -D -m 0755 $(PROG) $(DESTDIR)$(PREFIX)/$(PROG)

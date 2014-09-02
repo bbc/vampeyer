@@ -1,0 +1,13 @@
+Source: vampeyer
+Section: unknown
+Priority: optional
+Maintainer: Chris Baume <chris.baume@bbc.co.uk>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://www.bbc.co.uk/rd
+
+Package: vampeyer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

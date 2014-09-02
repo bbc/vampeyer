@@ -1,0 +1,7 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: vampeyer
+Source: <url://example.com>
+
+Files: *
+Copyright: 2014 Chris Baume <chris.baume@bbc.co.uk>
+License: Apache 2.0
