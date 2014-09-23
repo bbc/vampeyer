@@ -1,5 +1,5 @@
 CC=g++
-SOURCES=$(wildcard *.cpp)
+SOURCES=$(filter-out Template.cpp, $(wildcard *.cpp))
 OBJECTS=$(SOURCES:.cpp=.so)
 CFLAGS=-Wall -shared -fPIC -I../
 LDFLAGS=-lcairo
