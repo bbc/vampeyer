@@ -2,7 +2,7 @@ CC=g++
 
 PROG=vampeyer
 VERSION=0.1
-PREFIX=/usr/bin
+PREFIX=/usr
 SOURCES=VampHost.cpp VisHost.cpp PNGWriter.cpp GUI.cpp Vampeyer.cpp
 CFLAGS=-c -g -Wall
 LDFLAGS=-ldl -lpng -lsndfile -lvamp-hostsdk -lfltk
@@ -20,7 +20,7 @@ clean:
 	rm -f $(OBJECTS) $(PROG)
 
 install: all
-	install -D -m 0755 $(PROG) $(DESTDIR)$(PREFIX)/$(PROG)
+	install -D -m 0755 $(PROG) $(DESTDIR)$(PREFIX)/bin/$(PROG)
 
 package:
 	tar -czf ../vampeyer_$(VERSION).orig.tar.gz .
